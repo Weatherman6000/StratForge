@@ -1,17 +1,10 @@
-interface Position { 
-    ticker: string,
-    shares: number,
-    currentPrice: number,
-    averagePurchasePrice: number,
-};
-
-const portfolio: Position[] = [{ticker: 'AAPL', shares: 10, currentPrice: 230,
-     averagePurchasePrice: 190}, {ticker: 'NVDA', shares: 5, currentPrice: 180, averagePurchasePrice: 140}, 
-    {ticker: 'GOOGL', shares: 8, currentPrice: 240, averagePurchasePrice: 200}];
-
-function marketVal(position: Position) { 
-    return position.shares * position.currentPrice 
-};
+import {portfolio} from './data.js'
+import {
+    marketVal,
+    calculatePNL,
+    calculateWeight,
+    positionAnalysis
+} from "./portfolio.js"
 
 const marketValue = portfolio.map(marketVal);
 const totalVal = marketValue.reduce((sum , val) =>  sum + val, 0);
@@ -19,35 +12,13 @@ const totalVal = marketValue.reduce((sum , val) =>  sum + val, 0);
 console.log(marketValue) ;
 console.log(totalVal);
 
-function calculatePNL(position: Position): number { 
-    return (position.currentPrice - position.averagePurchasePrice) * position.shares
-};
-
-function calculateWeight(position: Position, PortfolioVal: number): number { 
-    return marketVal(position)/ PortfolioVal
-};
-
 const PNL = portfolio.map(calculatePNL)
 const weights = portfolio.map((position) => calculateWeight(position, totalVal))
 
 console.log(weights)
 console.log(PNL)
 
-interface PositionAnalysis{
-    ticker: string;
-    marketValue: number;
-    pnl: number;
-    weight: number;
-    returnPercentage: number;
-};
-
-function positionAnalysis(position: Position): PositionAnalysis{
-    return {ticker: position.ticker, marketValue: marketVal(position), 
-        pnl: calculatePNL(position), weight: calculateWeight(position, totalVal),
-        returnPercentage: calculateReturnPercentage(position)}
-};
-
-const positionReport = portfolio.map(positionAnalysis)
+const positionReport = portfolio.map((position) => positionAnalysis(position, totalVal))
 console.table(positionReport)
 
 const largestPosition = positionReport.reduce((largest, current) => {
@@ -56,6 +27,7 @@ const largestPosition = positionReport.reduce((largest, current) => {
     } 
     return largest;
 });
+
 
 console.log("Largest position:", largestPosition.ticker);
 console.log("Market value:", largestPosition.marketValue);
@@ -69,21 +41,17 @@ console.log("Total unrealized PNL:", totalPNL);
 
 //calculate total initial portfolio investment 
 
-const costBasis = portfolio.reduce((sum, current) => {
+const initialInvestment = portfolio.reduce((sum, current) => {
     return sum + current.shares * current.averagePurchasePrice;
 }, 0)
 
-console.log("Initial Investment:", costBasis);
+console.log("Initial Investment:", initialInvestment);
 
 //calculate total percentage return 
-const totalYield = (totalPNL / costBasis) * 100;
+const totalYield = (totalPNL / initialInvestment) * 100;
 console.log("Portfolio return:", `${totalYield.toFixed(2)}%`);
 
 //append individual stock yield 
-
-function calculateReturnPercentage(position: Position) { 
-    return (position.currentPrice - position.averagePurchasePrice) / position.averagePurchasePrice * 100
-}
 
 //find best performing stock 
 
